@@ -1,0 +1,9 @@
+{
+  "type": "object",
+  "required": ["email", "full_name", "company"],
+  "properties": {
+    "email": { "type": "string" },
+    "full_name": { "type": "string" },
+    "company": { "type": "string" }
+  }
+}

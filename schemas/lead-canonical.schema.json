@@ -1,0 +1,17 @@
+{
+  "type": "object",
+  "required": ["lead_id", "trace_id", "normalized_email", "company_domain", "full_name", "company", "created_at"],
+  "properties": {
+    "lead_id":          { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "trace_id":         { "type": "string", "format": "uuid" },
+    "normalized_email": { "type": "string" },
+    "company_domain":   { "type": "string" },
+    "full_name":        { "type": "string" },
+    "company":          { "type": "string" },
+    "phone":            { "type": "string" },
+    "created_at":       { "type": "string" },
+    "updated_at":       { "type": "string" },
+    "enrichment_status":{ "type": "string" },
+    "new_lead":         { "type": "boolean" }
+  }
+}

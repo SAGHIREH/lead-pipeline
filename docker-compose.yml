@@ -1,0 +1,11 @@
+services:
+  n8n:
+    image: n8nio/n8n:1.62.0
+    ports:
+      - "5678:5678"
+    environment:
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - WEBHOOK_HMAC_SECRET=${WEBHOOK_HMAC_SECRET}
+      - ENRICHMENT_MODE=${ENRICHMENT_MODE:-live}
+    volumes:
+      - ./n8n_data:/home/node/.n8n

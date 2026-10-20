@@ -1,0 +1,185 @@
+{
+  "name": "intake-validation-01",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "v1/leads",
+        "responseMode": "responseNode",
+        "options": {
+          "rawBody": true
+        }
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "43f4187b-02e9-4762-8340-5efc5efbd3a1",
+      "name": "Webhook",
+      "webhookId": "e1f564a2-e2a1-4e69-bd31-c8c1649e2073"
+    },
+    {
+      "parameters": {
+        "jsCode": "const item = $input.first().json;\nconst rawBody= item.body;\nconst headers = item.headers || {};\nconst sizeBytes = Buffer.byteLength(rawBody, \"utf8\");\nif (sizeBytes > 10240) {return[{json:{ok: false , error_code: \"PAYLOAD_TOO_LARGE\", _status: 413}}];} \nconst idemkey = headers[\"idempotency-key\"];\nif (!idemkey) {return[{json:{ok: false, error_code: \"MISSING_IDEMPOTENCY_KEY\", _status: 400}}];}\nconst crypto = require(\"crypto\");\nconst secret = $env.WEBHOOK_HMAC_SECRET;\nif (!secret) {return[{json:{ok: false, error_code: \"INTERNAL\", _status: 500}}];}\nconst expected = crypto.createHmac(\"sha256\", secret).update(rawBody).digest(\"hex\");\nconst signature = headers[\"x-signature\"];\nlet sigOK = false\nif (signature && signature.length === expected.length) { try {\nsigOK = crypto.timingSafeEqual(Buffer.from(signature, \"hex\"), Buffer.from(expected, \"hex\"))} catch(error) { sigOK = false;}}\nif (!sigOK) {return[{json: {ok: false, error_code: \"INVALID_SIGNATURE\", _status: 401}}];}\nreturn[{json: {ok: true, rawBody, idemkey }}];\n\n\n\n\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "ebd239d2-c368-40cc-a2d9-d0f8ed6b5f74",
+      "name": "Verify Edge Security"
+    },
+    {
+      "parameters": {
+        "jsCode": "const crypto = require(\"crypto\");\nconst input = $input.first().json;\nlet payload;\ntry {payload = JSON.parse(input.rawBody)} catch (e) {\n  return[{json: {ok: false, error_code: \"VALIDATION_FAILED\", message: \"invalid JSON\", _status: 422}}];\n}\nconst trace_id = crypto.randomUUID();\nfor (const f of [\"email\", \"full_name\", \"company\"]) {\n  if (typeof payload[f] !== \"string\" || payload[f].trim() === \"\") {\n    return[{json: {ok: false, error_code: \"VALIDATION_FAILED\", message: \"Missing field\" + f , _status: 422}}];\n  }\n}\nconst email = payload.email.trim().toLowerCase();\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!emailRegex.test(email)) {\n  return[{json: {ok: false, error_code: \"VALIDTION_FAILED\", message: \"Bad email format\", _status: 422}}];\n}\nconst lead_id = crypto.createHash(\"sha256\").update(email).digest(\"hex\");\nreturn[{json: {ok: true, trace_id: trace_id, lead_id: lead_id, normalized: {\n  email: email,\n  full_name: payload.full_name.trim(),\n  company: payload.company.trim()\n}, events: [\"LeadReceived\", \"LeadValidated\"]}}];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "130e5e8c-b49d-4c38-895e-bc9b4eecf2be",
+      "name": "Validate Payload"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "43a03460-a476-4323-ab47-34a32a90c662",
+              "leftValue": "={{ $json.ok }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        0
+      ],
+      "id": "050546ca-ce02-4292-a91e-725257f64e8d",
+      "name": "Is Valid?"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: true, trace_id: $json.trace_id, lead_id: $json.lead_id, status: \"accepted\" }) }}\n\n",
+        "options": {
+          "responseCode": 200
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1088,
+        -16
+      ],
+      "id": "572888bf-c619-40ac-8d7b-983d2544f0a3",
+      "name": "Respond to Webhook"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ ok: $json.ok, error_code: $json.error_code, message: $json.message, _status: $json._status }) }}",
+        "options": {
+          "responseCode": "={{ $json._status }}"
+        }
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        1104,
+        112
+      ],
+      "id": "fc288d5e-ecf9-4d37-aca1-b6dcc66dab45",
+      "name": "Respond Error"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Verify Edge Security",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Verify Edge Security": {
+      "main": [
+        [
+          {
+            "node": "Validate Payload",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Validate Payload": {
+      "main": [
+        [
+          {
+            "node": "Is Valid?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Valid?": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Respond Error",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "c607d120-e0ff-401a-8f9e-9ff24287ea3c",
+  "meta": {
+    "instanceId": "90f79daca79a7a685b40e0d1dcc279e36fbf431e13d22c3c583c01edac2a5d29"
+  },
+  "nodeGroups": [],
+  "id": "54yhxhBVNQ68AmYy",
+  "tags": []
+}

@@ -1,0 +1,13 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "EnrichmentContract",
+  "type": "object",
+  "required": ["name", "domain", "industry", "employee_count", "enrichment_status"],
+  "properties": {
+    "name": { "type": "string" },
+    "domain": { "type": "string" },
+    "industry": { "type": "string" },
+    "employee_count": { "type": "number" },
+    "enrichment_status": { "type": "string", "enum": ["live", "mock_fallback"] }
+  }
+}

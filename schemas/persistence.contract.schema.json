@@ -1,0 +1,11 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PersistenceContract",
+  "type": "object",
+  "required": ["lead_id", "new_lead", "action"],
+  "properties": {
+    "lead_id": { "type": "string", "pattern": "^[a-f0-9]{64}$" },
+    "new_lead": { "type": "boolean" },
+    "action": { "type": "string", "enum": ["inserted", "updated"] }
+  }
+}

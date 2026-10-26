@@ -18,8 +18,8 @@ jobs:
 
       - name: Validate JSON Schemas with AJV
         run: |
-          npm install -g ajv-cli
-          ajv compile -s "schemas/*.schema.json" --spec=draft7
+          npm install -g ajv-cli@5.0.0 ajv-formats@3.0.1
+          ajv compile -s "schemas/*.schema.json" --spec=draft7 -c ajv-formats
 
       - name: Secret Scan (Gitleaks)
         uses: gitleaks/gitleaks-action@v2

@@ -1,0 +1,700 @@
+{
+  "name": "dedup-storage-03",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "d04dd3c7-2220-4cd4-9cfc-ec0d0645a5a3",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ",
+          "mode": "list",
+          "cachedResultName": "Lead Pipeline DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "lead_id",
+              "lookupValue": "={{ $json.lead_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        0
+      ],
+      "id": "9966e6af-ebd0-47a4-886c-df34d70815e3",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Jm34T3MpuGBSVAOZ",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9a160b7b-465f-4977-b6c3-4b22b61f55f7",
+              "leftValue": "={{ $json.lead_id }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "exists",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        0
+      ],
+      "id": "de8bcce3-5f5b-40c3-98be-5ad00f4e8f78",
+      "name": "Is Duplicate?"
+    },
+    {
+      "parameters": {
+        "operation": "appendOrUpdate",
+        "documentId": {
+          "__rl": true,
+          "value": "1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ",
+          "mode": "list",
+          "cachedResultName": "Lead Pipeline DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $json.lead_id }}",
+            "email": "={{ $json.email }}",
+            "full_name": "={{ $json.full_name }}",
+            "company": "={{ $json.company }}",
+            "industry": "={{ $json.industry }}",
+            "employee_count": "={{ $json.employee_count }}",
+            "enrichment_status": "={{ $json.enrichment_status }}",
+            "times_seen": "={{ $json.times_seen + 1 }}",
+            "last_seen": "={{ $now }}",
+            "created_at": "={{ $json.created_at }}",
+            "updated_at": "={{ $now }}",
+            "new_lead": "false",
+            "trace_ids": "={{ $json.trace_ids }}",
+            "source": "={{ $json.source }}"
+          },
+          "matchingColumns": [
+            "lead_id"
+          ],
+          "schema": [
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "industry",
+              "displayName": "industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "employee_count",
+              "displayName": "employee_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "enrichment_status",
+              "displayName": "enrichment_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "times_seen",
+              "displayName": "times_seen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "last_seen",
+              "displayName": "last_seen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "trace_ids",
+              "displayName": "trace_ids",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "new_lead",
+              "displayName": "new_lead",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        -96
+      ],
+      "id": "dd919745-2bf8-48d2-ad97-fea891feb74f",
+      "name": "Update Existing Lead",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Jm34T3MpuGBSVAOZ",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ",
+          "mode": "list",
+          "cachedResultName": "Lead Pipeline DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "leads",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "lead_id": "={{ $json.lead_id }}",
+            "email": "={{ $json.normalized.email }}",
+            "full_name": "={{ $json.normalized.full_name }}",
+            "company": "={{ $json.company.name }}",
+            "industry": "={{ $json.industry }}",
+            "employee_count": "={{ $json.employee_count }}",
+            "enrichment_status": "={{ $json.enrichment_status }}",
+            "times_seen": "1",
+            "last_seen": "={{ $now }}",
+            "created_at": "={{ $now }}",
+            "updated_at": "={{ $now }}",
+            "new_lead": "true",
+            "trace_ids": "={{ $json.trace_ids }}",
+            "source": "={{ $json.source }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "lead_id",
+              "displayName": "lead_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "full_name",
+              "displayName": "full_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "industry",
+              "displayName": "industry",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "employee_count",
+              "displayName": "employee_count",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "enrichment_status",
+              "displayName": "enrichment_status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "times_seen",
+              "displayName": "times_seen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "last_seen",
+              "displayName": "last_seen",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "trace_ids",
+              "displayName": "trace_ids",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "created_at",
+              "displayName": "created_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "updated_at",
+              "displayName": "updated_at",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "source",
+              "displayName": "source",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "new_lead",
+              "displayName": "new_lead",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        832,
+        112
+      ],
+      "id": "22919cfa-956b-47ed-b0fd-d5aa67a55be1",
+      "name": "Insert New Lead",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Jm34T3MpuGBSVAOZ",
+          "name": "Google Sheets account 2"
+        }
+      },
+      "onError": "continueErrorOutput"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ",
+          "mode": "list",
+          "cachedResultName": "Lead Pipeline DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1972525107,
+          "mode": "list",
+          "cachedResultName": "dlq",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ/edit#gid=1972525107"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "payload_hash": "={{ $('Is Duplicate?').item.json.lead_id }}",
+            "reason": "={{ $json.error.message }}",
+            "trace_id": "={{ $('Is Duplicate?').item.json.trace_id }}",
+            "timestamp": "={{ $now }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "trace_id",
+              "displayName": "trace_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "payload_hash",
+              "displayName": "payload_hash",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "356e5829-4b03-474b-b24c-bd21b9217bd9",
+      "name": "Save to DLQ",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Jm34T3MpuGBSVAOZ",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    ...$input.first().json,\n    events: [\"LeadPersisted\"] \n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        -144
+      ],
+      "id": "811d08c0-95d1-40d0-b9b8-8114c29f6140",
+      "name": "Emit LeadDeduplicated"
+    },
+    {
+      "parameters": {
+        "jsCode": "return [{\n  json: {\n    ...$input.first().json,\n    events: [\"LeadPersisted\"] \n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1248,
+        176
+      ],
+      "id": "bc60fa04-194c-4621-820f-fcea0dd92ade",
+      "name": "Emit LeadPersisted"
+    }
+  ],
+  "pinData": {
+    "When clicking ‘Execute workflow’": [
+      {
+        "json": {
+          "lead_id": "test-999",
+          "normalized": {
+            "email": "newuser@example.com",
+            "full_name": "New User"
+          },
+          "company": {
+            "name": "New Company"
+          },
+          "industry": "Tech",
+          "employee_count": 50,
+          "enrichment_status": "live"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "Is Duplicate?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is Duplicate?": {
+      "main": [
+        [
+          {
+            "node": "Update Existing Lead",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Insert New Lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Insert New Lead": {
+      "main": [
+        [
+          {
+            "node": "Emit LeadPersisted",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save to DLQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update Existing Lead": {
+      "main": [
+        [
+          {
+            "node": "Emit LeadDeduplicated",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Save to DLQ",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "8efd0e47-725f-4a17-9e8e-22dc11faa205",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "90f79daca79a7a685b40e0d1dcc279e36fbf431e13d22c3c583c01edac2a5d29"
+  },
+  "nodeGroups": [],
+  "id": "THjKCkkeVZu5E95X",
+  "tags": []
+}

@@ -1,0 +1,247 @@
+{
+  "name": "enrichment-02",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -16
+      ],
+      "id": "c40fc513-5a49-4803-b7ab-f30b15adfd83",
+      "name": "When clicking ‘Execute workflow’"
+    },
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        896,
+        -16
+      ],
+      "id": "31212a75-8ac9-4418-9985-d53ff411e2e7",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "d1a870a5-1f19-4295-81b5-ad79ff9925e8",
+              "leftValue": "{{ $env.ENRICHMENT_MODE }}",
+              "rightValue": "live",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "265ae84a-9228-4307-89bc-61c1b8e17432",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "d823e07e-9fcc-465a-80d9-661126b4bd7c",
+              "leftValue": "",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        224,
+        -16
+      ],
+      "id": "d4b8aab4-2f3d-41d8-9b46-9279567867db",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "url": "https://api.hunter.io/v2/domain-search",
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "domain",
+              "value": "={{ $json.normalized.email_domain }}"
+            },
+            {
+              "name": "api_key",
+              "value": "{{ $env.HUNTER_API_KEY }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        448,
+        -112
+      ],
+      "id": "8add6ceb-dcb5-49bc-a4b3-d4c4dac68d12",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "\nconst hunterData = $input.first().json.data;\nconst companyModel = {\n  name: hunterData.organization || \"Unknown\",\n  domain: hunterData.domain || $json.normalized.email_domain,\n  industry: hunterData.industry || \"Unknown\",\n  employee_count: hunterData.metrics ? hunterData.metrics.employees : 0,\n  enrichment_status: \"live\"\n};\nreturn [{ json: companyModel }];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        672,
+        -112
+      ],
+      "id": "57eed608-677f-4664-b6e5-5f9d5429df29",
+      "name": "ACL"
+    },
+    {
+      "parameters": {
+        "jsCode": "const originalData = $input.first().json;\nreturn [{\n  json: {\n    ...originalData, \n    company: {\n      name: \"Mock Company\",\n      domain: \"mock.com\",\n      industry: \"Mock Industry\",\n      employee_count: 0,\n      enrichment_status: \"mock_fallback\"\n    }\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        560,
+        96
+      ],
+      "id": "9ea4139d-ea7d-4b72-be79-deba71c0d2ea",
+      "name": "Mock Fallback"
+    },
+    {
+      "parameters": {
+        "jsCode": "const data = $input.first().json;\n\nconst email = data.normalized.email;\nconst maskedEmail = email.replace(/(?<=.).(?=.*@)/g, '*');\n\nreturn [{\n  json: {\n    ...data,\n    normalized: {\n      ...data.normalized,\n      email_masked: maskedEmail\n    },\n    events: [\"LeadEnriched\"] \n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1120,
+        -16
+      ],
+      "id": "b1981a8e-8ba5-4b9e-b5b5-05e10873d356",
+      "name": "Emit LeadEnriched"
+    }
+  ],
+  "pinData": {
+    "When clicking ‘Execute workflow’": [
+      {
+        "json": {
+          "normalized": {
+            "email": "ali@example.com",
+            "email_domain": "example.com"
+          }
+        }
+      }
+    ]
+  },
+  "connections": {
+    "When clicking ‘Execute workflow’": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Mock Fallback",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "ACL",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "ACL": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mock Fallback": {
+      "main": [
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Emit LeadEnriched",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "80377b58-3d7e-492c-a426-c426907d039a",
+  "meta": {
+    "instanceId": "90f79daca79a7a685b40e0d1dcc279e36fbf431e13d22c3c583c01edac2a5d29"
+  },
+  "nodeGroups": [],
+  "id": "L5Iz8JGECsdkjzez",
+  "tags": []
+}

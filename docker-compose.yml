@@ -6,6 +6,9 @@ services:
     environment:
       - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
       - WEBHOOK_HMAC_SECRET=${WEBHOOK_HMAC_SECRET}
+      - HUNTER_API_KEY=${HUNTER_API_KEY}
+      - SLACK_WEBHOOK_URL=${SLACK_WEBHOOK_URL}
+      - GOOGLE_SHEETS_ID=${GOOGLE_SHEETS_ID}
       - ENRICHMENT_MODE=${ENRICHMENT_MODE:-live}
     volumes:
       - ./n8n_data:/home/node/.n8n

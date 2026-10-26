@@ -1,0 +1,181 @@
+{
+  "name": "error-handler-00",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "e56d23cf-5ffa-409a-ada4-9aea1b14c63a",
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "jsCode": "const errorData = $input.first().json;\n\nlet email = \"unknown\";\nif (errorData.execution && errorData.execution.data) {\n  email = \"hidden@example.com\"; \n}\n\nconst maskedEmail = email.replace(/(?<=.)(?=.*@)/g, '***');\n\nreturn [{\n  json: {\n    error_message: errorData.execution?.error?.message || \"Unknown Error\",\n    workflow_name: errorData.workflow?.name || \"Unknown Workflow\",\n    time: new Date().toISOString(),\n    masked_user: maskedEmail\n  }\n}];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        224,
+        0
+      ],
+      "id": "fe604d88-176d-4ce2-8a1a-f48f9b69c114",
+      "name": "Mask PII & Prepare Log"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ",
+          "mode": "list",
+          "cachedResultName": "Lead Pipeline DB",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 958574485,
+          "mode": "list",
+          "cachedResultName": "errors",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1KSbTHMnYalnPM4vCXbvBqIb3QYV-ntGa8ypyHT5kfCQ/edit#gid=958574485"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "error_message": "={{ $json.error_message }}",
+            "workflow_name": "={{ $json.workflow_name }}",
+            "time": "={{ $json.time }}",
+            "masked_user": "={{ $json.masked_user }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "error_message",
+              "displayName": "error_message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "workflow_name",
+              "displayName": "workflow_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "time",
+              "displayName": "time",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "masked_user",
+              "displayName": "masked_user",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        448,
+        0
+      ],
+      "id": "e10728d5-aaa0-41df-9b80-70c5c1bee7ed",
+      "name": "Save Error to Sheets",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "Jm34T3MpuGBSVAOZ",
+          "name": "Google Sheets account 2"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.SLACK_WEBHOOK_URL }}",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"text\": \"🚨 *SYSTEM ERROR ALERT!* 🚨\\nWorkflow: {{ $json.workflow_name }}\\nError: {{ $json.error_message }}\\nTime: {{ $json.time }}\"\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        704,
+        0
+      ],
+      "id": "6eb23b9c-8262-46e8-97b8-cb7c0ca6c6ef",
+      "name": "Alert Admin via Slack"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "Mask PII & Prepare Log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mask PII & Prepare Log": {
+      "main": [
+        [
+          {
+            "node": "Save Error to Sheets",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Save Error to Sheets": {
+      "main": [
+        [
+          {
+            "node": "Alert Admin via Slack",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "075dbe66-8de7-44af-85e3-17ff486a6082",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "90f79daca79a7a685b40e0d1dcc279e36fbf431e13d22c3c583c01edac2a5d29"
+  },
+  "nodeGroups": [],
+  "id": "jxDwjQH2tfiI6zXp",
+  "tags": []
+}

@@ -22,7 +22,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const item = $input.first().json;\nconst rawBody= item.body;\nconst headers = item.headers || {};\nconst sizeBytes = Buffer.byteLength(rawBody, \"utf8\");\nif (sizeBytes > 10240) {return[{json:{ok: false , error_code: \"PAYLOAD_TOO_LARGE\", _status: 413}}];} \nconst idemkey = headers[\"idempotency-key\"];\nif (!idemkey) {return[{json:{ok: false, error_code: \"MISSING_IDEMPOTENCY_KEY\", _status: 400}}];}\nconst crypto = require(\"crypto\");\nconst secret = $env.WEBHOOK_HMAC_SECRET;\nif (!secret) {return[{json:{ok: false, error_code: \"INTERNAL\", _status: 500}}];}\nconst expected = crypto.createHmac(\"sha256\", secret).update(rawBody).digest(\"hex\");\nconst signature = headers[\"x-signature\"];\nlet sigOK = false\nif (signature && signature.length === expected.length) { try {\nsigOK = crypto.timingSafeEqual(Buffer.from(signature, \"hex\"), Buffer.from(expected, \"hex\"))} catch(error) { sigOK = false;}}\nif (!sigOK) {return[{json: {ok: false, error_code: \"INVALID_SIGNATURE\", _status: 401}}];}\nreturn[{json: {ok: true, rawBody, idemkey }}];\n\n\n\n\n"
+        "jsCode": "const item = $input.first().json;\nconst rawBody = typeof item.body === 'string' ? item.body : JSON.stringify(item.body);\nconst headers = item.headers || {};\nconst sizeBytes = Buffer.byteLength(rawBody, \"utf8\");\nif (sizeBytes > 10240) {return[{json:{ok: false , error_code: \"PAYLOAD_TOO_LARGE\", _status: 413}}];} \nconst idemkey = headers[\"idempotency-key\"];\nif (!idemkey) {return[{json:{ok: false, error_code: \"MISSING_IDEMPOTENCY_KEY\", _status: 400}}];}\nconst crypto = require(\"crypto\");\nconst secret = $env.WEBHOOK_HMAC_SECRET;\nif (!secret) {return[{json:{ok: false, error_code: \"INTERNAL\", _status: 500}}];}\nconst expected = crypto.createHmac(\"sha256\", secret).update(rawBody).digest(\"hex\");\nconst signature = headers[\"x-signature\"];\nlet sigOK = false\nif (signature && signature.length === expected.length) { try {\nsigOK = crypto.timingSafeEqual(Buffer.from(signature, \"hex\"), Buffer.from(expected, \"hex\"))} catch(error) { sigOK = false;}}\nif (!sigOK) {return[{json: {ok: false, error_code: \"INVALID_SIGNATURE\", _status: 401}}];}\nreturn[{json: {ok: true, rawBody:rawBody, idemKey:idemkey }}];\n\n\n\n\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -35,7 +35,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const crypto = require(\"crypto\");\nconst input = $input.first().json;\nlet payload;\ntry {payload = JSON.parse(input.rawBody)} catch (e) {\n  return[{json: {ok: false, error_code: \"VALIDATION_FAILED\", message: \"invalid JSON\", _status: 422}}];\n}\nconst trace_id = crypto.randomUUID();\nfor (const f of [\"email\", \"full_name\", \"company\"]) {\n  if (typeof payload[f] !== \"string\" || payload[f].trim() === \"\") {\n    return[{json: {ok: false, error_code: \"VALIDATION_FAILED\", message: \"Missing field\" + f , _status: 422}}];\n  }\n}\nconst email = payload.email.trim().toLowerCase();\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!emailRegex.test(email)) {\n  return[{json: {ok: false, error_code: \"VALIDTION_FAILED\", message: \"Bad email format\", _status: 422}}];\n}\nconst lead_id = crypto.createHash(\"sha256\").update(email).digest(\"hex\");\nreturn[{json: {ok: true, trace_id: trace_id, lead_id: lead_id, normalized: {\n  email: email,\n  full_name: payload.full_name.trim(),\n  company: payload.company.trim()\n}, events: [\"LeadReceived\", \"LeadValidated\"]}}];\n"
+        "jsCode": "const crypto = require(\"crypto\");\nconst input = $input.first().json;\nlet payload;\ntry {payload = JSON.parse(input.rawBody)} catch (e) {\n  return[{json: {ok: false, error_code: \"VALIDATION_FAILED\", message: \"invalid JSON\", _status: 422}}];\n}\nconst trace_id = crypto.randomUUID();\nfor (const f of [\"email\", \"full_name\", \"company\"]) {\n  if (typeof payload[f] !== \"string\" || payload[f].trim() === \"\") {\n    return[{json: {ok: false, error_code: \"VALIDATION_FAILED\", message: \"Missing field\" + f , _status: 422}}];\n  }\n}\nconst email = payload.email.trim().toLowerCase();\nconst emailRegex = /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/;\nif (!emailRegex.test(email)) {\n  return[{json: {ok: false, error_code: \"VALIDATION_FAILED\", message: \"Bad email format\", _status: 422}}];\n}\nconst lead_id = crypto.createHash(\"sha256\").update(email).digest(\"hex\");\nreturn[{json: {ok: true, trace_id: trace_id, lead_id: lead_id, normalized: {\n  email: email,\n  full_name: payload.full_name.trim(),\n  company: payload.company.trim()\n}, events: [\"LeadReceived\", \"LeadValidated\"]}}];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -83,9 +83,9 @@
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={{ JSON.stringify({ ok: true, trace_id: $json.trace_id, lead_id: $json.lead_id, status: \"accepted\" }) }}\n\n",
+        "responseBody": "={{ JSON.stringify({ ok: true, message: \"HMAC verified successfully!\" }) }}",
         "options": {
-          "responseCode": 200
+          "responseCode": "={{ 200 }}"
         }
       },
       "type": "n8n-nodes-base.respondToWebhook",
@@ -169,13 +169,13 @@
       ]
     }
   },
-  "active": false,
+  "active": true,
   "settings": {
     "executionOrder": "v1",
     "binaryMode": "separate",
     "availableInMCP": false
   },
-  "versionId": "c607d120-e0ff-401a-8f9e-9ff24287ea3c",
+  "versionId": "4efad54d-6796-4f4d-a71f-7cc1c2688973",
   "meta": {
     "instanceId": "90f79daca79a7a685b40e0d1dcc279e36fbf431e13d22c3c583c01edac2a5d29"
   },

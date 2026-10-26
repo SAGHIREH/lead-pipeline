@@ -1,0 +1,63 @@
+{
+  "name": "health-05",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "v1/health",
+        "responseMode": "responseNode",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [
+        0,
+        0
+      ],
+      "id": "a621f65e-2358-4c69-8d34-d33bc5c30610",
+      "name": "Webhook",
+      "webhookId": "1d701d87-a68a-413c-b2c8-f36ce9162b0f"
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ JSON.stringify({ status: \"ok\", version: \"1.0.0\", time: $now }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1.5,
+      "position": [
+        224,
+        0
+      ],
+      "id": "f567a9ed-4735-4c50-a36e-3d3bf4227e98",
+      "name": "Respond to Webhook"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Respond to Webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate",
+    "availableInMCP": false
+  },
+  "versionId": "d3967693-e97d-4dd0-af53-b420ce7a65ca",
+  "meta": {
+    "instanceId": "90f79daca79a7a685b40e0d1dcc279e36fbf431e13d22c3c583c01edac2a5d29"
+  },
+  "nodeGroups": [],
+  "id": "P1HOPspxo7YpomHe",
+  "tags": []
+}

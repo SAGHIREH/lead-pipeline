@@ -1,0 +1,12 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "ErrorContract",
+  "type": "object",
+  "required": ["error_message", "workflow_name", "time", "masked_user"],
+  "properties": {
+    "error_message": { "type": "string" },
+    "workflow_name": { "type": "string" },
+    "time": { "type": "string" },
+    "masked_user": { "type": "string" }
+  }
+}

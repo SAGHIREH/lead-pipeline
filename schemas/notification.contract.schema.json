@@ -1,0 +1,15 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "NotificationContract",
+  "type": "object",
+  "required": ["trace_id", "company", "enrichment_status", "events"],
+  "properties": {
+    "trace_id": { "type": "string" },
+    "company": { "type": "object" },
+    "enrichment_status": { "type": "string" },
+    "events": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
